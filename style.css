@@ -1,0 +1,115 @@
+:root {
+    --header-height: 3rem;
+}
+
+[data-theme="light"] {
+    --main-bg-color: #d5d6db;
+    --text-color: #0f0f14;
+}
+
+[data-theme="dark"] {
+    --main-bg-color: #16161e;
+    --text-color: #7aa2f7;
+}
+
+* { 
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: "JetBrains Mono", Arial, Helvetica, sans-serif;
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-color);
+}
+
+/* Header & footer elements */
+.bar {
+    width: 100%;
+    background-color: var(--main-bg-color);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.bar-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-grow: 1;
+    margin: 0.5rem;
+}
+
+.bar-left {
+    justify-content: flex-start;
+}
+
+.bar-center {
+    justify-content: center;
+}
+
+.bar-right {
+    justify-content: flex-end;
+}
+
+#theme-toggle {
+    width: 2rem;
+    height: 2rem;
+    background-color: var(--text-color);
+    border: var(--text-color);
+    border-radius: 1rem;
+    border-style: solid;
+}
+
+.progress-bar-container {
+    width: 50%;
+    min-width: 50%;
+    height: 1rem;
+    min-height: 1rem;
+    border-radius: 1rem;
+    background-color: var(--text-color);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 25%;
+    background-color: var(--main-bg-color);
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 1rem;
+}
+
+/* Header */
+header {
+    height: var(--header-height);
+    min-height: var(--header-height);
+}
+
+/* Footer */
+footer {
+    height: 2rem;
+}
+
+/* Content */
+#content {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background-color: var(--main-bg-color);
+}
+
+/* Main */
+main {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
