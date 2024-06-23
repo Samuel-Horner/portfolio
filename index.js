@@ -5,27 +5,37 @@ const darkModeIcon = "images/dark-mode.svg"
 const lightModeIcon = "images/light-mode.svg"
 const themeIcon = document.getElementById("theme-toggle")
 
-let theme = "dark";
-themeIcon.src = darkModeIcon;
+let theme = localStorage.getItem("theme");
+if (!theme){
+    theme = "light";
+    localStorage.setItem("theme", "light");
+}
+
+setTheme();
 
 function changeTheme() {
+    theme = theme == "dark" ? "light" : "dark";
+    setTheme();
+}
+
+function setTheme() {
     if (theme == "dark") {
-        lightMode();
-    } else {
         darkMode();
+    } else {
+        lightMode();
     }
 }
 
 function darkMode() {
     html.setAttribute("data-theme", "dark");
-    theme = "dark";
     themeIcon.src = darkModeIcon;
+    localStorage.setItem("theme", "dark")
 }
 
 function lightMode() {
     html.setAttribute("data-theme", "light");
-    theme = "light";
     themeIcon.src = lightModeIcon;
+    localStorage.setItem("theme", "light")
 }
 
 // Progress Bar
@@ -39,5 +49,5 @@ function progressBarUpdate() {
     let scrollHeight = scroller.scrollHeight - height;
     let scrollTop = scroller.scrollTop;
     let percent = scrollTop / scrollHeight * 100;
-    progressBar.style.width = percent + "%";
+    progressBar.style.flexBasis = Math.min(percent, 100) + "%";
 } 
