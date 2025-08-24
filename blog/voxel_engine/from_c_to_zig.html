@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Style -->
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/style.css">
+
+    <!-- JetBrainsMono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+    <title>Samuel Horner</title>
+</head>
+<body>
+    <header class="bar">
+        <div class="bar-left bar-section">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+        <div class="bar-center bar-section">
+            <a href="/index.html">
+                <p class="centered">Samuel Horner</p>
+            </a>
+        </div>
+        <div class="bar-right bar-section">
+            <img id="theme-toggle" src="" alt="Toggle Theme" onclick="changeTheme()">
+        </div>
+    </header>
+    <div id="content">
+        <main>
+            <div id="blog-body">
+                <h1 id="voxel-engine---from-c-to-zig">Voxel Engine - From C to Zig</h1>
+
+                <p>Written by Samuel Horner, latest update on 24/08/2025.</p>
+
+                <h2 class="sub-heading">Intro</h2>
+
+                <p>Almost half a year ago, I started working on what would become my biggest project yet - a (fairly barebones) voxel engine. I had 4 main goals:</p>
+
+                <ul>
+                    <li>Be capable of rendering a 3D plane of textured voxels 256 by 256 wide and 128 tall at above 60 frames per second.</li>
+
+                    <li>Seemlessly load new parts of the plane as the player moves to them, and remove parts that are too far away, making the plane effectively infinite.</li>
+                        
+                    <li>Fast and interesting terrain generation for this plane (the entire plane should not take more than 10 seconds to generate).</li>
+
+                    <li>Limited (adding or removing single voxels) but smooth voxel editing capability (i.e: editing voxels should not cause any noticable performance impact).</li>
+                </ul>
+
+                <p>My first decision was to choose technologies. I wanted to get better at low-level programming, and since I was already familiar with C++, I decided to begin writing in C.</p>
+
+                <p>I was also toying with using Vulkan over OpenGL, but since I had worked with WebGL and OpenGL in the past, and was already learning a new language, I decided to stick with what I knew - OpenGL, with GLFW for window management.</p>
+
+                <p>Going from high-level languages like Java and Python to C was quite a shock at first, but after a couple weeks of head scratching over pointers and memory management, I began to really enjoy it.</p>
+
+                <p>There is something beautiful about programming with no guide rails, and despite loosing sleep over segfaults and memory leaks, I would heavily encourage anyone who is interested to try it.</p>
+
+                <p>Since I wanted to learn more about how the structures and algorithms that I took for granted in other languages worked, I challenged myself to not use any dependencies other than GLFW, OpenGL, FreeType, and <a href="https://github.com/recp/cglm"><u>cglm</u></a> (because whilst I may be interested in learning low-level concepts, I am no mathematician and any implementation I wrote would be miles behind the amazing work that the folks at cglm have done).</p>
+
+                <p>This decision led to a lot of fun, learning, and pain over the most benign of errors, and to a <a href="https://github.com/Samuel-Horner/c-voxel/blob/master/src/vector.c"><u>particularly horrific implementation of a dynamic array.</u></a></p>
+
+                <h2 class="sub-heading">Progress</h2>
+
+                <p>After a few months of tinkering, headaches and epiphanies, I had gotten fairly far in fulfilling the original goals of the project.</p>
+
+                <p>I had created a chunk/world system, which generated voxels in 16x16x16 cubes and prepared meshes for rendering (using voxel pulling, which we do not have time to cover here).</p>
+
+                <p>I also had player movement down, text rendering (albeit very primitively) done and had even started work on an LOD system.</p>
+
+                <p>However, even with all the progress I had made, I was far from done. For one, I still did not have any idea how to implement chunk loading/unloading.</p>
+
+                <p>Up till this point, I had stored the chunks in a dynamic array, which worked fine, with constant time indexing, and could even grow to load new chunks. However, this relies one the order of chunk insertions being known, which would not be the case if the player can load and unload chunks arbitrarily.</p>
+
+                <p>My best idea to remedy this issue is to instead use a hash map, but since I need to be able to iterate over all loaded chunks to render the world, it would have to be array-backed. This, however, introduces a whole new issue of overhead when deleting/inserting elements into the map, since resizing the map would is a large I/O operation and the world tick is on the render thread (as the entire project was single threaded).</p>
+
+                <p>Add this to the fact that voxel editing requires re-meshing the entire chunk, which requires querying neighbouring chunks, and that chunk generation requires multiple noise operations per voxel, and requires neighbouring chunks to be re-meshed, simply loading a new chunk could freeze the program for upwards of an entire second, which is not acceptable.</p>
+
+                <p>There is an obvious fix here, which is to put the world ticks on a separate thread to the render loop. This is doable (although non-trivial, in fact as of writing this I still haven't implemented this), however at this point making sweeping changes to the codebase (as this would require) is a hurdle in of itself.</p>
+
+                <h2 class="sub-heading">Stuck in a quagmire of bad decisions</h2>
+
+                <p>C is an incredibly powerful language, and just as it can allow you to write some of the most performant and seamless applications out there, it can just as easily let you shoot yourself in the foot.</p>
+
+                <p>And that was exactly what I had done. Coming from a background of mainly OOP, C's procedural paradigm was disconcerting, to say the least.</p>
+
+                <p>In a vague attempt to remedy this, I had adopted a sort of pseudo class-based approach, where I had separated my program into files, each of which containing a struct and a set of functions that take a pointer to that struct as an argument.</p>
+
+                <p>This very quickly led to another issue - how to build the program. You see, splitting each of these files into a header and implementation, then linking them together in my CMakeLists (yes, I was using CMake), sounded like more of a headache than I wanted, and seemed like a lot of bother for not much gain.</p>
+
+                <p>Doing it this way (the 'proper' way) would have also restricted which files could include others, to avoid circular dependencies, and that was not ideal, since, for example, my 'Chunk' file needed access to functions in the 'World' file, which itself needed to include the 'Chunk' file.</p>
+
+                <p>So I decided not to do it this way. Instead, I adopted a unity build strategy, where instead of separating my implementation and definition into separate files, I simply included the C files directly in each other.</p>
+
+                <p>This, in combination with include guards, essentially just tells the compiler to put all of my code into one big file, which while great for simplicity, has some dangerous side effects.</p>
+
+                <p>For one, this means that all files can access definitions in all other files, as long as they are both included in the entry-point file, even without including the other file themselves. This also means that all definitions are in the same 'namespace', and thus can conflict with each other.</p>
+
+                <p>For example, imagine the following scenario. I have two files, 'world.c' and 'chunk.c', with an entry-point 'main.c'.</p>
+
+                <pre>
+                <code class="language-c">
+// main.c
+#include "world.c"
+#include "chunk.c"
+
+// world.c
+typedef struct { ... } World;
+
+float some_global = 0;
+
+World init(int parameter_a) { 
+    World world = { ... };
+    some_global += 2;
+    return world;
+}
+
+// chunk.c
+typedef struct { ... } Chunk;
+
+int some_global = 0;
+
+Chunk init(float parameter_b) {
+    Chunk chunk = { ... };
+    some_global += 1;
+    return chunk;
+}
+                </code>
+                </pre>
+
+                <p>Ideally, I would be able to do something like this:</p>
+
+                <pre>
+                <code class="language-c">
+// main.c
+#include "world.c"
+#include "chunk.c"
+
+int main() {
+    ...
+    World world = World.init(some_int);
+    Chunk chunk = Chunk.init(some_float);a
+
+    printf("%f", World.some_global); // 2
+    printf("%d", Chunk.some_global); // 1
+    ...
+}
+                </code>
+                </pre>
+
+                <p>But with the above example, the compiler gives conflicting function definition and variable definition errors.</p>
+
+                <p>To be fair, even with splitting the code into separate implementation/definition files, this still wouldn't work, since C has no concept of function overloading or methods. I could have faked this by giving each struct fields for each of its functions, but that would have been very annoying to maintain and would have added unnecessary runtime overhead.</p>
+
+                <p>I had also been doing a lot of global state manipulation, which when everything is in a single scope, tends to be very messy to keep track of, with variables like <code class="language-c">current_world</code> and <code class="language-c">current_cam_chunk</code> being used for things like 'owned callbacks' (callbacks that need a structure to reference but cannot accept one as a parameter) and transferring state from one frame to the next.</p>
+
+                <p>All in all, the code was becoming unbearably messy. Every change I made required double checking that I wasn't conflicting with any other definitions, and for every global state mutation I had to trace every usage of that state and ensure nothing was out of order.</p>
+
+                <p>So, something had to change. I could either spend a while rewriting things in the current project, refactoring and redesigning along the way, or I could do something slightly more... drastic.</p>
+
+                <h2 class="sub-heading">The Port</h2>
+
+                <p>Enter Zig, a sleek and (relatively) new language that seemed to be the perfect fix. It could interface with existing C code with drop in compiler support and actually incorporates my hacky OOP-like C into the language, with struct methods and namespaces.</p>
+
+                <p>This seemed almost too good to be true. And it really is all I wanted whilst writing C and more. With robust compilation time evaluations, a much more rigorously defined type system and a frankly better in every way build system (at least compared to CMake), Zig was the way to go.</p>
+
+                <p>So, after nearly 5 months of working on and off on the project, I decided that a complete rewrite and port to Zig was in order.</p>
+
+                <p>I first had to find Zig bindings for GLFW, OpenGL and FreeType, and luckily the folks at <a href="https://github.com/castholm/zigglgen"><u>zigglgen</u></a>, <a href="https://github.com/falsepattern/zig-glfw"><u>zig-glfw</u></a> and <a href="https://github.com/hexops/mach-freetype"><u>Mach</u></a> had me covered.</p>
+
+                <p>Finding an appropriate maths library was harder. I considered many options, from continuing to use <a href="https://github.com/recp/cglm"><u>cglm</u></a> (which while possible would be rather clunky and would require writing my own bindings), to native Zig options like <a href="https://github.com/griush/zm"><u>zm</u></a> and <a href="https://github.com/ziglibs/zlm"><u>zlm</u></a>, even to writing my own.</p>
+
+                <p>I eventually decided to go with <a href="https://github.com/griush/zm"><u>zm</u></a>, since its interface was, in my opinion, easier to use than other native Zig options, and it had all the features I used in <a href="https://github.com/recp/cglm"><u>cglm</u></a> (other than noise).</p>
+
+                <p>Later on, I added another dependency, namely <a href="https://github.com/zig-gamedev/znoise?tab=readme-ov-file"><u>znoise</u></a> (Zig bindings for <a href="https://github.com/Auburn/FastNoiseLite"><u>FastNoiseLite</u></a>).</p>
+
+                <p>I did try to implement <a href="https://github.com/KdotJPG/OpenSimplex2"><u>OpenSimplexNoise2</u></a> myself, porting it from KdotJPG's Java implementation, but I quickly realised that it was not worth the effort, since Zig's type casting functions markedly differently from Java's type coercion.</p>
+
+                <p>All in all, the actual porting process was fairly painless. Zig's unique struct implementation, with methods and namespaces, along with its declarative build system made the process a lot less painless than I had imagined, since I had essentially been trying to force C to behave like Zig the entire time.</p>
+
+                <p>It also gave me a chance to revisit old parts of the codebase, like my SSBO and VertexBuffer 'classes', which I then rewrote to be much more user-friendly. I also gave the Uniform system a complete overhaul, introducing the concept of 'owned' uniforms, where, instead of passing pointers through global state as I had been doing, I could instead pass them directly to the Program's 'applyUniform' function.</p>
+
+                <p>This, while possible in C, was a direct result of porting to Zig, as it's method system was the direct inspiration for the implementation.</p>
+
+                <p>Even having now, as of writing, completed the port, with the Zig version at complete behaviour parity with its C counterpart, I still would like to revisit parts of the codebase that I did not have time to enhance during the process.</p>
+
+                <p>Primarily, I feel my text rendering solution is incredibly primitive and wasteful, since when I first wrote it I was entirely following the <a href="https://learnopengl.com/"><u>learnopengl.com</u></a> tutorial on the topic, which while a great learning resource, is not exactly the optimal way to do things.</p>
+
+                <h2 class="sub-heading">Conclusion and Comparison</h2>
+
+                <p>I am very happy that I decided to port the project. While C is an amazing language, and I would happily use it again, the decisions I had made during my early days of learning weighed heavily on the project in its latter stages.</p>
+
+                <p>The unity build strategy had unforeseen implications, forcing C to behave like an object oriented language made implementations clunkier than needed and global state manipulation heavily encumbered code legibility.</p>
+
+                <p>Zig remedies most of these issues, with its struct methods and 'namespaces' and easy to use build system.</p>
+
+                <p>Having worked with both languages, I feel confident enought to give a brief comparison:</p>
+
+                <p>C:</p>
+                <ul>
+                        <li>Simple but powerful</li>
+                        <li>Wide variety of existing tooling</li>
+                        <li>Zero in built safety mechanisms</li>
+                        <li>Procedural</li>
+                </ul>
+
+                <p>Zig:</p>
+                <ul>
+                        <li>Modern</li>
+                        <li>Still in its infancy, so less tooling and more change</li>
+                        <li>In built safety mechanisms with a focus on low-to-no runtime cost</li>
+                        <li>Procedural but with comforts like namespaces and methods</li>
+                        <li>Fantastic standard library</li>
+                </ul>
+
+                <p>I am looking forward to working more on this project, and I will be focussing entirely on the Zig version from now on. Future work:</p>
+
+                <ul>
+                        <li>Multithreaded world ticks (possible client/server architecture)</li>
+                        <li>Texture support</li>
+                        <li>More voxel optimisations, i.e. LODs and (maybe) greedy meshing</li>
+                        <li>Faster and better terrain generation</li>
+                        <li>Player physics</li>
+                </ul>
+            </div>
+        </main>
+        <footer class="bar">
+            <div class="bar-left bar-section">
+                <a href="https://github.com/Samuel-Horner">
+                    <p class="footer-paragraph">
+                        <u>GitHub</u>
+                    </p>
+                </a>
+            </div>
+            <div class="bar-right bar-section">
+                <p class="footer-paragraph">
+                    Written by Samuel Horner
+                </p>
+            </div>
+        <footer>
+    </div>
+    <!-- JavaScript -->
+    <script type="text/javascript" src="/index.js"></script>
+</body>
+</html>

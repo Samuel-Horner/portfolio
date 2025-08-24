@@ -21,7 +21,9 @@
             </div>
         </div>
         <div class="bar-center bar-section">
-            <p class="centered">Samuel Horner</p>
+            <a href="/index.html">
+                <p class="centered">Samuel Horner</p>
+            </a>
         </div>
         <div class="bar-right bar-section">
             <img id="theme-toggle" src="" alt="Toggle Theme" onclick="changeTheme()">
@@ -31,23 +33,38 @@
         <main>
             <div id="bio">
                 <h1>Bio</h1>
-                <p class="block-paragraph">Hi, my name is Sam and I am an undergraduate computer science student. I love getting my hands on anything I find interesting, which is currently graphics. I have experience writing in many languages and environments, from legacy Java to bleeding-edge Rust. I enjoy tinkering and problem solving, and am currently working on a particularly large project, my voxel engine. I hope you enjoy my work!</p>
+                <hr class="divider"><br>
+                <p>Hi, my name is Sam and I am an undergraduate computer science student. I love getting my hands on anything I find interesting, which is currently graphics. I have experience writing in many languages and environments, from legacy Java to bleeding-edge Zig. I enjoy tinkering and problem solving, and am currently working on a particularly large project, my voxel engine. I hope you enjoy my work!</p>
             </div>
-            <hr class="divider">
+            <div id="blog">
+                <h1>Blog</h1>
+                <hr class="divider"><br>
+                <h2>Voxel Engine</h2>
+                <ul>
+                    <li>
+                        <a href="/blog/voxel_engine/from_c_to_zig.html" class="blog-entry">
+                            <span class="date">24/08/2025</span> From C to Zig
+                        </a>
+                    </li>
+                </ul>
+            </div>
             <div id="projects">
                 <h1>Projects</h1>
+                <hr class="divider">
+                <br>
                 <div id="project-gallery", class="project-gallery">
-                    <a href="https://github.com/Samuel-Horner/c-voxel" class="project">
+                    <a href="https://github.com/Samuel-Horner/zig-voxel" class="project">
+                    <!-- <a href="./blog/generated/" class="project"> -->
                         <div class="project-img">
                             <img class="project-thumbnail" src="images/projects/c-voxel.png"></img>
                         </div>
                         <div class="project-description">
                             <h2>Voxel Engine</h2>
                             <p class="project-description-paragraph">
-                                A bare-bones voxel engine I'm working on, written with pure C23, GLFW, OpenGL and cglm.
+                                A bare-bones voxel engine, written in Zig 0.14.1, using GLFW and OpenGL. Created as an exercise in graphics engineering and optimisation. See the blog below for a 'devlog' of sorts.
                             </p>
                             <div class="project-credits">
-                                C with GLFW and OpenGL.
+                                Zig with GLFW and OpenGL.
                             </div>
                         </div>
                     </a>
@@ -57,8 +74,8 @@
                             <img class="project-thumbnail" src="images/projects/nea-project.png"></img>
                         </div>
                         <div class="project-description">
-                            <h2>WebGL 1.0 Editor</h2>
-                            <p class="project-description-paragraph">I made this project for my A-Level computer science coursework. It consists of a WebGL 1.0 fragment shader, vertex shader and mesh data editor, with a built in account and project storage system.</p>
+                            <h2>WebGL Editor</h2>
+                            <p class="project-description-paragraph">I made this project for my A-Level computer science coursework. It consists of fragment shader, vertex shader and mesh data editors, with a built in account and project storage system.</p>
                             <div class="project-credits">
                                 JavaScript w/ node.js
                             </div>
@@ -99,7 +116,7 @@
                         <div class="project-description">
                             <h2>AQA Assembly Interpreter</h2>
                             <p class="project-description-paragraph">
-                                A small interpreter for AQA's assembly language I made to help me and my peers in understanding it.
+                                A small interpreter for AQA's assembly language I wrote during A-levels as a learning aide.
                             </p>
                             <div class="project-credits">
                                 Python
@@ -120,7 +137,6 @@
                     </a>
                 </div>
             </div>
-            <hr class="divider">
         </main>
         <footer class="bar">
             <div class="bar-left bar-section">

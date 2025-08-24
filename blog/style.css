@@ -1,0 +1,21 @@
+#blog-body {
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
+p {
+    /* margin-left: 1rem; */
+    margin-top: 1rem;
+}
+
+ul {
+    margin-top: 1rem;
+    margin-left: 1rem;
+    list-style-position: outside;
+}
+
+.sub-heading {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+}
