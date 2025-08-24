@@ -1,8 +1,8 @@
 const html = document.querySelector("html");
 
 // Theme
-const darkModeIcon = "/images/dark-mode.svg";
-const lightModeIcon = "/images/light-mode.svg";
+const darkModeIcon = "/portfolio/images/dark-mode.svg";
+const lightModeIcon = "/portfolio/images/light-mode.svg";
 const themeIcon = document.getElementById("theme-toggle");
 
 let theme = localStorage.getItem("theme");
